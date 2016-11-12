@@ -20,10 +20,12 @@ using namespace std;
 
 pswdmgr::pswdmgr(const std::string& fileName, const uint8_t* password)
 {
+	// Open file for reading
 	ifstream file(fileName, ios::binary | ios::in);
 	if(!file.is_open())
 		throw runtime_error("Cannot open " + fileName);
 
+	// Get filesize
 	unsigned int fileSize;
 	file.seekg(0, ios::end);
 	fileSize = file.tellg();
@@ -33,12 +35,13 @@ pswdmgr::pswdmgr(const std::string& fileName, const uint8_t* password)
 	if(fileSize % 16 != 0)
 		throw runtime_error("File is not valid");
 
-	// Read or generate salt and IV
+	// Ensure fprng is seeded
+	Seed();
+
+	// Read salt and IV for decrypting pswds, or generate new salt
 	if(fileSize < 32)
 	{
-		Seed();
 		fprng.GenerateBlocks(salt.data(), 1);
-		fprng.GenerateBlocks(iv.data(), 1);
 		fileSize = 0;
 	}
 	else
@@ -93,6 +96,7 @@ pswdmgr::pswdmgr(const std::string& fileName, const uint8_t* password)
 
 void pswdmgr::AddSite(const string& site, const string& username, const uint8_t* password)
 {
+	// Allocate memory for user/pass and store as shared ptr, add to map
 	UserPass* upassPtr = new UserPass({username, move(SecureString((char*)password))});
 	pswds[site] = shared_ptr<UserPass>(upassPtr);
 }
@@ -102,9 +106,14 @@ void pswdmgr::WriteOut(const string& fileName)
 	ofstream file(fileName, ios::trunc | ios::binary | ios::out);
 	if(file.is_open())
 	{
+		// Write same salt to file, so password can generate correct key next time
 		file.write((char*)salt.data(), 16);
+
+		// Generate new IV
+		fprng.GenerateBlocks(iv.data(), 1);
 		file.write((char*)iv.data(), 16);
 
+		// Determine size needed to store all triplets in encrypted buffer
 		unsigned int bufferSize = 0;
 		for(const pair<string, shared_ptr<UserPass>>& line : pswds)
 		{
@@ -117,12 +126,13 @@ void pswdmgr::WriteOut(const string& fileName)
 			const SecureString& password = line.second->password;
 			bufferSize += password.GetLength() + 1;
 		}
+		bufferSize = AES::PaddedSize(bufferSize);
 
 		// Create buffer to store encrypted data
 		SecureString buffer;
-		bufferSize = AES::PaddedSize(bufferSize);
 		buffer.ResizeToFit(bufferSize);
 
+		// Write triplets to buffer
 		unsigned int pos = 0;
 		for(const pair<string, shared_ptr<UserPass>>& line : pswds)
 		{
@@ -142,6 +152,7 @@ void pswdmgr::WriteOut(const string& fileName)
 			pos += password.GetLength() + 1;
 		}
 
+		// Encrypt buffer and write to file
 		AES::Encrypt(buffer.GetStr(), pos, iv, key, buffer.GetStr());
 		file.write((char*)buffer.GetStr(), bufferSize);
 	}
@@ -166,8 +177,15 @@ std::shared_ptr<pswdmgr::UserPass> pswdmgr::operator[](const std::string& site)
 	return pswds.at(site);
 }
 
+void pswdmgr::CreateKey(const uint8_t* password)
+{
+	fprng.GenerateBlocks(salt.data(), 1);
+	libscrypt_scrypt(password, strlen((const char*)password), salt.data(), salt.size(), SCRYPT_WORK_VALUE, 8, 1, key.Get(), key.Size());
+}
+
 void pswdmgr::Seed()
 {
+	// Not windows friendly but meh
 	ifstream rand("/dev/urandom", ios::in | ios::binary);
 	if(rand.is_open())
 	{

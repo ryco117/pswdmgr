@@ -20,35 +20,44 @@ using namespace std;
 const string helpStr = "pswdmgr written by ryco117@gmail.com\n\n"
 "Arguments List:\n"
 "===============\n"
-"-f  --file file_path,      specify path to encrypted password file (default is ~/.pswds)\n"
 "-a  --add some.site.net,   allows addition of username/password pair (otherwrites any existing entry)\n"
-"-v  --view some.site.net,  retrieve username and password pair (if exists)\n"
+"-c  --change,              prompt to change master password\n"
+"-f  --file file_path,      specify path to encrypted password file (default is ~/.pswds)\n"
 "-l  --list,                list all username/password pairs, for each website\n"
+"-v  --view some.site.net,  retrieve username and password pair (if exists)\n"
 "-h  --help,                print this list and exit\n\n";
 
+// Read password from stdin to SecureString until newline
+// Throws wexception if input is not UTF-8 compatible
 void ReadPassword(SecureString& password);
+
+// Prints n ' '
 void PrintNSpaces(unsigned int n);
+
+// Throws exception if char is not in range of UTF-8 continuation byte
 void ContByteOrThrow(const unsigned char& c);
-void KBHitOrThrow();
+
 
 int main(int argc, char** argv)
 {
 	string pswdsFileName = string(getenv("HOME")) + string("/.pswds");
 	string addSite, viewSite;
-	bool listAll = false;
+	bool listAll = false, changePass = false;
 
 	// Read command line args
 	for(unsigned int i = 1; i < argc; i++)
 	{
 		string arg = argv[i];
-		if((arg == "-f" || arg == "--file") && ++i < argc)
-			pswdsFileName = argv[i];
-		else if((arg == "-a" || arg == "--add") && ++i < argc)
+		if((arg == "-a" || arg == "--add") && ++i < argc)
 			addSite = argv[i];
-		else if((arg == "-v" || arg == "--view") && ++i < argc)
-			viewSite = argv[i];
+		else if(arg == "-c" || arg == "--change")
+			changePass = true;
+		else if((arg == "-f" || arg == "--file") && ++i < argc)
+			pswdsFileName = argv[i];
 		else if(arg == "-l" || arg == "--list")
 			listAll = true;
+		else if((arg == "-v" || arg == "--view") && ++i < argc)
+			viewSite = argv[i];
 		else if(arg == "-h" || arg == "--help")
 		{
 			cout << helpStr;
@@ -62,10 +71,27 @@ int main(int argc, char** argv)
 	{
 		// Read file password and retrieve data
 		SecureString masterPass;
+		if(changePass)
+			cout << "Current ";
 		cout << "Master Password: ";
 		ReadPassword(masterPass);
-
 		pswdmgr mgr(pswdsFileName, masterPass.GetStr());
+
+		// If changing password
+		if(changePass)
+		{
+			SecureString newPass, checkPass;
+			cout << "Enter new master password: ";
+			ReadPassword(newPass);
+			cout << "Retype password: ";
+			ReadPassword(checkPass);
+
+			if(newPass != checkPass)
+				throw runtime_error("Passwords do not match");
+
+			mgr.CreateKey(newPass.GetStr());
+			mgr.WriteOut(pswdsFileName);
+		}
 
 		// Check if adding a site
 		if(!addSite.empty())
@@ -127,15 +153,15 @@ int main(int argc, char** argv)
 		fflush(stderr);
 		return -100;
 	}
+
 	return 0;
 }
 
 void PrintNSpaces(unsigned int n)
 {
-	for(int i = 0; i < n; i++)
-	{
-		cout << " ";
-	}
+	string spaces;
+	spaces.replace(0, 0, n, ' ');
+	cout << spaces;
 }
 
 void ReadPassword(SecureString& password)
@@ -184,6 +210,7 @@ void ReadPassword(SecureString& password)
 			}
                         else if(c == '\n')
                         {
+				// Enter pressed, switch to regular tty input print newline and return0
                                 nonblock(false, true);
                                 cout << endl;
                                 fflush(stdout);
@@ -195,9 +222,11 @@ void ReadPassword(SecureString& password)
                         }
 			else if(c == 127 || c == 8)       //Backspace
                         {
+				// Check password is non-empty
                         	unsigned int len = password.GetLength();
                                 if(len > 0)
                                 {
+					// Delete last byte and set new length
                                 	len -= 1;
                                 	password[len] = 0;
                                         password.SetLength(len);
@@ -215,12 +244,4 @@ void ContByteOrThrow(const unsigned char& c)
 {
 	if(c < 0x80 || c > 0xBF)
 		throw runtime_error("Not a valid UTF-8 character");
-}
-
-void KBHitOrThrow()
-{
-	if(kbhit() == 0)
-	{
-		throw runtime_error("Invalid UTF-8 input");
-	}
 }
