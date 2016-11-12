@@ -2,7 +2,8 @@ CXX=g++
 OUT=./bin/pswdmgr
 
 make:
-	$(CXX) main.cpp myconio.cpp pswdmgr.cpp -lcryptolibrary -lscrypt -o $(OUT)
+	mkdir -p ./bin
+	$(CXX) --std=c++11 main.cpp myconio.cpp pswdmgr.cpp -lcryptolibrary -lscrypt -o $(OUT)
 
 clean:
 	rm $(OUT)

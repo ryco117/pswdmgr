@@ -3,7 +3,10 @@
 #include <crypto/SecureString.h>
 #include <crypto/Base64.h>
 
-#include <libscrypt.h>
+extern "C"
+{
+	#include <libscrypt.h>
+}
 #include <string.h>
 
 #include <fstream>
