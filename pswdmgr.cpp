@@ -12,6 +12,10 @@ extern "C"
 #include <fstream>
 #include <stdexcept>
 
+#ifdef WINDOWS
+    #include <Wincrypt.h>
+#endif
+
 #ifndef SCRYPT_WORK_VALUE
 	#define SCRYPT_WORK_VALUE 1048576
 #endif
@@ -85,20 +89,25 @@ pswdmgr::pswdmgr(const std::string& fileName, const uint8_t* password)
 		pos += username.size() + 1;
 
 		SecureString sitePassword((char*)&pswdsStr[pos]);
-		pos += sitePassword.GetLength() + 1;
-
-		UserPass* upassPtr = new UserPass;
-		upassPtr->username = username;
-		upassPtr->password.PullFrom(sitePassword);
-		pswds[site] = shared_ptr<UserPass>(upassPtr);
+        pos += sitePassword.GetLength() + 1;
+        pswds[site] = make_shared<UserPass>(username, std::move(sitePassword));
 	}
 }
 
 void pswdmgr::AddSite(const string& site, const string& username, const uint8_t* password)
 {
 	// Allocate memory for user/pass and store as shared ptr, add to map
-	UserPass* upassPtr = new UserPass({username, move(SecureString((char*)password))});
-	pswds[site] = shared_ptr<UserPass>(upassPtr);
+    pswds[site] = make_shared<UserPass>(username, std::move(SecureString((char*)password)));
+}
+void pswdmgr::AddSite(const string& site, const std::shared_ptr<UserPass>& uPass)
+{
+    // Allocate memory for user/pass and store as shared ptr, add to map
+    pswds[site] = uPass;
+}
+
+void pswdmgr::RemoveSite(const std::string& site)
+{
+    pswds.erase(site);
 }
 
 void pswdmgr::WriteOut(const string& fileName)
@@ -169,12 +178,16 @@ map<std::string, std::shared_ptr<pswdmgr::UserPass>>::iterator pswdmgr::IterBegi
 
 map<std::string, std::shared_ptr<pswdmgr::UserPass>>::iterator pswdmgr::IterEnd()
 {
-	return pswds.end();
+    return pswds.end();
 }
 
 std::shared_ptr<pswdmgr::UserPass> pswdmgr::operator[](const std::string& site)
 {
-	return pswds.at(site);
+    return pswds[site];
+}
+std::shared_ptr<pswdmgr::UserPass> pswdmgr::At(const std::string& site)
+{
+    return pswds[site];
 }
 
 void pswdmgr::CreateKey(const uint8_t* password)
@@ -185,16 +198,24 @@ void pswdmgr::CreateKey(const uint8_t* password)
 
 void pswdmgr::Seed()
 {
-	// Not windows friendly but meh
-	ifstream rand("/dev/urandom", ios::in | ios::binary);
-	if(rand.is_open())
-	{
-		SecureArray<1024> seed;
-		rand.read((char*)seed.Get(), 1024);
-		fprng.Seed(seed.Get(), 1024);
-	}
-	else
-	{
-		throw runtime_error("Could not open default seed /dev/urandom");
-	}
+    SecureArray <1024> seed;
+
+    #ifdef WINDOWS
+        HCRYPTPROV cspHndl;
+        CryptAcquireContext(&cspHndl, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT);
+        CryptGenRandom(cspHndl, 1024, seed);
+        CryptReleaseContext(cspHndl, 0);
+    #else
+        ifstream rand("/dev/random", ios::in | ios::binary);
+        if(rand.is_open())
+        {
+            rand.read((char*)seed.Get(), 1024);
+        }
+        else
+        {
+            throw runtime_error("Could not open default seed /dev/random");
+        }
+    #endif
+
+    fprng.Seed(seed.Get(), 1024);
 }
