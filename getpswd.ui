@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GetPswd</class>
+ <widget class="QDialog" name="GetPswd">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>46</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Enter Pswd File Master Key</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QLineEdit" name="PswdEdit">
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>GetPswd</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>389</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>31</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>PswdEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>GetPswd</receiver>
+   <slot>PswdAccepted()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>4</x>
+     <y>11</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>PswdEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>GetPswd</receiver>
+   <slot>PswdChanged(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>145</x>
+     <y>15</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>142</x>
+     <y>0</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>GetPswd</receiver>
+   <slot>PswdAccepted()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>291</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>187</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>PswdChanged(QString)</slot>
+  <slot>PswdAccepted()</slot>
+ </slots>
+</ui>

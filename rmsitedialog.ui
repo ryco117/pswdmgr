@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RmSiteDialog</class>
+ <widget class="QDialog" name="RmSiteDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>46</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QLineEdit" name="SiteEdit"/>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>RmSiteDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>390</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>RmSiteDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>390</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>RmSiteDialog</receiver>
+   <slot>Accepted()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>323</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>263</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>SiteEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>RmSiteDialog</receiver>
+   <slot>Accepted()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>159</x>
+     <y>27</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>4</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>Accepted()</slot>
+ </slots>
+</ui>
