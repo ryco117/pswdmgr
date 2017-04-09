@@ -19,8 +19,5 @@ void GetSiteUserPass::Accepted()
     SecureString tempSecureStr(ui->pswdEdit->text().toLocal8Bit().data(), ui->pswdEdit->text().toLocal8Bit().length());
     pswd.PullFrom(tempSecureStr);
 
-    // Zero
-    memset(ui->pswdEdit->text().data(), 0, ui->pswdEdit->text().length() * sizeof(QChar));
-
     emit accept();
 }

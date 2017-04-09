@@ -38,6 +38,9 @@ private slots:
     // Cells
     void CellChanged(int row, int col);
     void CellEntered(int row, int col);
+    void PswdChanged();
+    void ShowPswdPress();
+    void ShowPswdRelease();
 
 private:
     Ui::MainWindow *ui;

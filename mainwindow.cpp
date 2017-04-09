@@ -7,6 +7,8 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QPushButton>
+#include <QLineEdit>
 
 #include <iostream>
 
@@ -15,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    pswdColumns << "Site" << "Username" << "Password";
+    pswdColumns << "Site" << "Username" << "Password" << "Show Pswd";
     ui->PswdsTable->setHorizontalHeaderLabels(pswdColumns);
     ui->PswdsTable->resizeColumnsToContents();
     masterPswd.Clear();
@@ -26,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // check if file exists and if yes: Is it really a file and no directory?
     if (check_file.exists() && check_file.isFile())
     {
-        GetPswd getPswd(masterPswd, this);
+        GetPswd getPswd(&masterPswd, this);
         if(getPswd.exec() == QDialog::Accepted)
         {
             try
@@ -74,14 +76,39 @@ void MainWindow::RedrawTable()
     for(std::map<std::string, std::shared_ptr<pswdmgr::UserPass>>::iterator siteIter = pswds->IterBegin();
         siteIter != pswds->IterEnd(); siteIter++)
     {
+        // Creating a new table row
         ui->PswdsTable->insertRow(curRow);
-        QTableWidgetItem* siteItm = new QTableWidgetItem(siteIter->first.c_str());
-        QTableWidgetItem* userItm = new QTableWidgetItem(siteIter->second->username.c_str());
-        QTableWidgetItem* pswdItm = new QTableWidgetItem(reinterpret_cast<char*>(siteIter->second->password.GetStr()));
 
+        // Add label
+        QTableWidgetItem* siteItm = new QTableWidgetItem(siteIter->first.c_str());
         ui->PswdsTable->setItem(curRow, 0, siteItm);
+
+        // Add user
+        QTableWidgetItem* userItm = new QTableWidgetItem(siteIter->second->username.c_str());
         ui->PswdsTable->setItem(curRow, 1, userItm);
-        ui->PswdsTable->setItem(curRow, 2, pswdItm);
+
+        // Add password line edit widget
+        QLineEdit* pswdWdgt = new QLineEdit(reinterpret_cast<char*>(siteIter->second->password.GetStr()), ui->PswdsTable);
+        pswdWdgt->setEchoMode(QLineEdit::Password);
+        pswdWdgt->setProperty("curRow", curRow);
+        connect(pswdWdgt, SIGNAL(editingFinished()), this, SLOT(PswdChanged()));
+        ui->PswdsTable->setCellWidget(curRow, 2, pswdWdgt);
+
+        // Add show password button widget
+        QWidget* pContainBttn = new QWidget();
+        QHBoxLayout* pLayoutBttn = new QHBoxLayout(pContainBttn);
+        QPushButton* bttnWdgt = new QPushButton("", this);
+        bttnWdgt->setProperty("curRow", curRow);
+        connect(bttnWdgt, SIGNAL(pressed()), this, SLOT(ShowPswdPress()));
+        connect(bttnWdgt, SIGNAL(released()), this, SLOT(ShowPswdRelease()));
+
+        pLayoutBttn->addWidget(bttnWdgt);
+        pLayoutBttn->setAlignment(Qt::AlignCenter);
+        pLayoutBttn->setContentsMargins(4, 4, 4, 4);
+        pContainBttn->setLayout(pLayoutBttn);
+        ui->PswdsTable->setCellWidget(curRow, 3, pContainBttn);
+
+
         curRow++;
     }
     ui->PswdsTable->resizeColumnsToContents();
@@ -109,7 +136,8 @@ std::string MainWindow::UserAtRow(unsigned int row)
 
 SecureString MainWindow::PswdAtRow(unsigned int row)
 {
-    return SecureString(ui->PswdsTable->item(row, 2)->text().toLocal8Bit().data(), ui->PswdsTable->item(row, 2)->text().toLocal8Bit().size());
+    QLineEdit* pswdEdit = reinterpret_cast<QLineEdit*>(ui->PswdsTable->cellWidget(row, 2));
+    return std::move(SecureString(pswdEdit->text().toLocal8Bit().data(), pswdEdit->text().toLocal8Bit().size()));
 }
 
 // SLOTS
@@ -131,7 +159,7 @@ void MainWindow::OpenPswdFile(void)
         ui->PswdsTable->removeRow(i);
     }
 
-    GetPswd getPswd(masterPswd, this);
+    GetPswd getPswd(&masterPswd, this);
     if(getPswd.exec() == QDialog::Accepted)
     {
         try
@@ -223,7 +251,7 @@ void MainWindow::CreateNewPswdFile(void)
         ui->PswdsTable->removeRow(i);
     }
 
-    GetPswd getPswd(masterPswd, this);
+    GetPswd getPswd(&masterPswd, this);
     if(getPswd.exec() == QDialog::Accepted)
     {
         try
@@ -293,7 +321,7 @@ void MainWindow::ChangePswd(void)
     if(openFileName.length())
     {
         SecureString newPswd;
-        GetPswd getPswd(newPswd, this);
+        GetPswd getPswd(&newPswd, this);
         if(getPswd.exec() == QDialog::Accepted)
         {
             try
@@ -352,20 +380,11 @@ void MainWindow::CellChanged(int row, int col)
             pswds->At(site)->username = UserAtRow(row);
             break;
         }
-        case 2:
-        {
-            // Password ..
-            SecureString newPass = PswdAtRow(row);
-            std::string site = SiteAtRow(row);
-            pswds->At(site)->password.PullFrom(newPass);
-            break;
-        }
         default:
             ui->statusBar->showMessage("Wat!! How do got heer!", 5000);
             return;
         }
 
-        //std::cout << site << " " << pswds->At(site)->username << " " << pswds->At(site)->password.GetStr() << std::endl;
         //ui->statusBar->showMessage(tr("Changed cell at row ") + QString::number(row) + tr(" and col ") + QString::number(col), 4000);
     }
 }
@@ -380,4 +399,26 @@ void MainWindow::CellEntered(int row, int col)
     {
         curSite.clear();
     }
+
+    //ui->statusBar->showMessage(tr("Entered cell at row ") + QString::number(row) + tr(" and col ") + QString::number(col), 4000);
+}
+
+void MainWindow::PswdChanged()
+{
+    unsigned int row = sender()->property("curRow").toUInt();
+    SecureString newPass = PswdAtRow(row);
+    std::string site = SiteAtRow(row);
+    pswds->At(site)->password.PullFrom(newPass);
+}
+
+void MainWindow::ShowPswdPress()
+{
+    unsigned int row = sender()->property("curRow").toUInt();
+    reinterpret_cast<QLineEdit*>(ui->PswdsTable->cellWidget(row, 2))->setEchoMode(QLineEdit::Normal);
+}
+
+void MainWindow::ShowPswdRelease()
+{
+    unsigned int row = sender()->property("curRow").toUInt();
+    reinterpret_cast<QLineEdit*>(ui->PswdsTable->cellWidget(row, 2))->setEchoMode(QLineEdit::Password);
 }

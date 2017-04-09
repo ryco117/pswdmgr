@@ -13,7 +13,7 @@ class GetPswd : public QDialog
     Q_OBJECT
 
 public:
-    explicit GetPswd(SecureString& pswdOut, QWidget *parent = 0);
+    explicit GetPswd(SecureString* pswdOut, QWidget *parent = 0);
     ~GetPswd();
 
 public slots:
@@ -22,7 +22,7 @@ public slots:
 
 private:
     Ui::GetPswd *ui;
-    SecureString& pswdStr;
+    SecureString* pswdStr;
 };
 
 #endif // GETPSWD_H

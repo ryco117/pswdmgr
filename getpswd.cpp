@@ -7,7 +7,7 @@
 using namespace std;
 
 
-GetPswd::GetPswd(SecureString& pswd, QWidget *parent) :
+GetPswd::GetPswd(SecureString* pswd, QWidget *parent) :
     QDialog(parent), pswdStr(pswd), ui(new Ui::GetPswd)
 {
     ui->setupUi(this);
@@ -29,11 +29,10 @@ void GetPswd::PswdChanged(QString pswd)
     if(pswd.length())
     {
         ui->buttonBox->setEnabled(true);
-        memset(pswd.data(), 0, pswd.size() * sizeof(QChar));
     }
     else
     {
-        pswdStr.Clear();
+        pswdStr->Clear();
         ui->buttonBox->setEnabled(false);
     }
 }
@@ -42,7 +41,7 @@ void GetPswd::PswdAccepted()
 {
     // Replace current password buffer
     SecureString tempSecureStr(ui->PswdEdit->text().toLocal8Bit().data(), ui->PswdEdit->text().toLocal8Bit().length());
-    pswdStr.PullFrom(tempSecureStr);
+    pswdStr->PullFrom(tempSecureStr);
 
     emit accept();
 }
