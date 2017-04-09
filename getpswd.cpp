@@ -29,6 +29,7 @@ void GetPswd::PswdChanged(QString pswd)
     if(pswd.length())
     {
         ui->buttonBox->setEnabled(true);
+        memset(pswd.data(), 0, pswd.size() * sizeof(QChar));
     }
     else
     {

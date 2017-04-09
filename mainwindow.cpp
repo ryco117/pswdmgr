@@ -324,7 +324,8 @@ void MainWindow::OpenAbout()
 
 void MainWindow::OpenHelp()
 {
-    QMessageBox msg(QMessageBox::Information, "Help", "", QMessageBox::Ok, this);
+    QMessageBox msg(QMessageBox::Information, "Help", "Its simple!\nStart by creating a new password file by clicking in the menu bar 'File->Create New Pswd File...' then select an appropriate location and name for the file. At the prompt, enter a memorable but sufficiently complex password as the master password to the file to finalize its creation.\n"
+"From here you can create/remove credentials using the 'Manage' menu field, as well as edit existing entries by double clicking them. Changes such as edits and changing the current password are not written to disc unill 'File->Writeout' is pressed, writing to the last opened, created, or saved-to location. Additionally, 'File->Write To File...' can be used to specify a different/new password file to write to.", QMessageBox::Ok, this);
     msg.exec();
 }
 
@@ -363,9 +364,10 @@ void MainWindow::CellChanged(int row, int col)
             ui->statusBar->showMessage("Wat!! How do got heer!", 5000);
             return;
         }
+
+        //std::cout << site << " " << pswds->At(site)->username << " " << pswds->At(site)->password.GetStr() << std::endl;
+        //ui->statusBar->showMessage(tr("Changed cell at row ") + QString::number(row) + tr(" and col ") + QString::number(col), 4000);
     }
-    //std::cout << site << " " << pswds->At(site)->username << " " << pswds->At(site)->password.GetStr() << std::endl;
-    //ui->statusBar->showMessage(tr("Changed cell at row ") + QString::number(row) + tr(" and col ") + QString::number(col), 4000);
 }
 
 void MainWindow::CellEntered(int row, int col)
@@ -378,7 +380,4 @@ void MainWindow::CellEntered(int row, int col)
     {
         curSite.clear();
     }
-
-    //std::cout << site << " " << pswds->At(site)->username << " " << pswds->At(site)->password.GetStr() << std::endl;
-    //ui->statusBar->showMessage(tr("Entered cell at row ") + QString::number(row) + tr(" and col ") + QString::number(col), 4000);
 }

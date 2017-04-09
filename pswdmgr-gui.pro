@@ -37,3 +37,6 @@ INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/include
 
 unix: PRE_TARGETDEPS += /usr/local/lib/libcryptolibrary.a
+
+DISTFILES += \
+    README.md
