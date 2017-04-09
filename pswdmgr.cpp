@@ -18,6 +18,8 @@ extern "C"
 
 #ifndef SCRYPT_WORK_VALUE
 	#define SCRYPT_WORK_VALUE 1048576
+    #define SCRYPT_CPU_VALUE 1
+    #define SCRYPT_RAM_VALUE 8
 #endif
 
 using namespace std;
@@ -62,7 +64,7 @@ pswdmgr::pswdmgr(const std::string& fileName, const uint8_t* password)
 	file.close();
 
 	// Hash password with salt
-	libscrypt_scrypt(password, strlen((const char*)password), salt.data(), salt.size(), SCRYPT_WORK_VALUE, 8, 1, key.Get(), 32);
+    libscrypt_scrypt(password, strlen((const char*)password), salt.data(), salt.size(), SCRYPT_WORK_VALUE, SCRYPT_RAM_VALUE, SCRYPT_CPU_VALUE, key.Get(), 32);
 
 	// Decrypt data if there's any
 	unsigned int pswdDataSize = 0;
