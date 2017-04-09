@@ -154,6 +154,7 @@ void MainWindow::OpenPswdFile(void)
     SetEnableModify(false);
     openFileName.clear();
     masterPswd.Clear();
+    pswds.reset(nullptr);
     for(int i = ui->PswdsTable->rowCount()-1; i >= 0; i--)
     {
         ui->PswdsTable->removeRow(i);
@@ -287,7 +288,7 @@ void MainWindow::AddSitePswd(void)
     {
         std::string site, username;
         SecureString pswd;
-        GetSiteUserPass sup(site, username, pswd, this);
+        GetSiteUserPass sup(&site, &username, &pswd, this);
         if(sup.exec() == QDialog::Accepted)
         {
             pswds->AddSite(site, username, pswd.GetStr());
@@ -304,7 +305,7 @@ void MainWindow::RemoveSitePswd(void)
     if(openFileName.length())
     {
         std::string site;
-        RmSiteDialog siteDialog(site, this);
+        RmSiteDialog siteDialog(&site, this);
         if(siteDialog.exec() == QDialog::Accepted)
         {
             pswds->RemoveSite(site);

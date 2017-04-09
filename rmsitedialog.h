@@ -12,7 +12,7 @@ class RmSiteDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit RmSiteDialog(std::string& siteOut, QWidget *parent = 0);
+    explicit RmSiteDialog(std::string* siteOut, QWidget *parent = 0);
     ~RmSiteDialog();
 
 public slots:
@@ -20,7 +20,7 @@ public slots:
 
 private:
     Ui::RmSiteDialog *ui;
-    std::string& site;
+    std::string* site;
 };
 
 #endif // RMSITEDIALOG_H

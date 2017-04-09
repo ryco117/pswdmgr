@@ -1,7 +1,7 @@
 #include "rmsitedialog.h"
 #include "ui_rmsitedialog.h"
 
-RmSiteDialog::RmSiteDialog(std::string& siteOut, QWidget *parent) :
+RmSiteDialog::RmSiteDialog(std::string* siteOut, QWidget *parent) :
     QDialog(parent), site(siteOut), ui(new Ui::RmSiteDialog)
 {
     ui->setupUi(this);
@@ -14,7 +14,7 @@ RmSiteDialog::~RmSiteDialog()
 
 void RmSiteDialog::Accepted()
 {
-    site = ui->SiteEdit->text().toStdString();
+    *site = ui->SiteEdit->text().toStdString();
 
     emit accept();
 }
