@@ -13,7 +13,7 @@ class GetSiteUserPass : public QDialog
     Q_OBJECT
 
 public:
-    explicit GetSiteUserPass(std::string& siteOut, std::string& usernameOut, SecureString& pswdOut, QWidget *parent = 0);
+    explicit GetSiteUserPass(std::string* siteOut, std::string* usernameOut, SecureString* pswdOut, QWidget *parent = 0);
     ~GetSiteUserPass();
 
 public slots:
@@ -21,9 +21,9 @@ public slots:
 
 private:
     Ui::GetSiteUserPass *ui;
-    std::string& site;
-    std::string& username;
-    SecureString& pswd;
+    std::string* site;
+    std::string* username;
+    SecureString* pswd;
 };
 
 #endif // GETSITEUSERPASS_H
