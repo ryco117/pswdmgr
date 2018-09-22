@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     pswdColumns << "Site" << "Username" << "Password" << "Show Pswd";
     ui->PswdsTable->setHorizontalHeaderLabels(pswdColumns);
+    ui->PswdsTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     ui->PswdsTable->resizeColumnsToContents();
     masterPswd.Clear();
     SetEnableModify(false);
@@ -111,6 +112,8 @@ void MainWindow::RedrawTable()
 
         curRow++;
     }
+
+    ui->PswdsTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     ui->PswdsTable->resizeColumnsToContents();
 }
 
