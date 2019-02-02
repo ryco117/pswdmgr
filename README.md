@@ -2,7 +2,7 @@ pswdmgr
 =======
 A simple utility for storing and retrieving passwords as securely as possible, using StrongHash(master password, randomly generated salt) as the 256 bit AES key used to encrypt the passwords.
 
-Cryptographic operations are handled by my open source project CryptoLibrary (a consolidated [improved] library of the cryptographic functions I've written, still under development).
+Cryptographic operations are handled by my open source project CryptoLibrary (a consolidated [improved] library of the cryptographic functions I've written, very experimental).
 
 ##Arguments List:
 ```
